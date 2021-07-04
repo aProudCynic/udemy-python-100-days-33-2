@@ -5,6 +5,8 @@ from secrets import (
     MY_LONG,
 )
 
+VICINITY_THRESHOLD = 0.05
+
 response = requests.get(url="http://api.open-notify.org/iss-now.json")
 response.raise_for_status()
 data = response.json()
@@ -12,27 +14,41 @@ data = response.json()
 iss_latitude = float(data["iss_position"]["latitude"])
 iss_longitude = float(data["iss_position"]["longitude"])
 
-#Your position is within +5 or -5 degrees of the ISS position.
+
+def are_coordinates_between_threshold(first_coordinate, second_coordinate):
+    return first_coordinate - VICINITY_THRESHOLD < second_coordinate < first_coordinate + VICINITY_THRESHOLD
 
 
-parameters = {
-    "lat": MY_LAT,
-    "lng": MY_LONG,
-    "formatted": 0,
-}
+def is_my_position_nearby(iss_latitude, iss_longitude):
+    return are_coordinates_between_threshold(iss_latitude, MY_LAT) \
+           and are_coordinates_between_threshold(iss_longitude, MY_LONG)
 
-response = requests.get("https://api.sunrise-sunset.org/json", params=parameters)
-response.raise_for_status()
-data = response.json()
-sunrise = int(data["results"]["sunrise"].split("T")[1].split(":")[0])
-sunset = int(data["results"]["sunset"].split("T")[1].split(":")[0])
 
-time_now = datetime.now()
+def is_dark():
+    parameters = {
+        "lat": MY_LAT,
+        "lng": MY_LONG,
+        "formatted": 0,
+    }
 
-#If the ISS is close to my current position
-# and it is currently dark
-# Then send me an email to tell me to look up.
-# BONUS: run the code every 60 seconds.
+    response = requests.get("https://api.sunrise-sunset.org/json", params=parameters)
+    response.raise_for_status()
+    data = response.json()
+    sunrise = int(data["results"]["sunrise"].split("T")[1].split(":")[0])
+    sunset = int(data["results"]["sunset"].split("T")[1].split(":")[0])
+
+    time_now = datetime.now()
+    return time_now.hour < sunrise or time_now.hour > sunset
+
+
+if is_my_position_nearby(iss_latitude, iss_longitude) and is_dark():
+
+
+
+    #If the ISS is close to my current position
+    # and it is currently dark
+    # Then send me an email to tell me to look up.
+    # BONUS: run the code every 60 seconds.
 
 
 
