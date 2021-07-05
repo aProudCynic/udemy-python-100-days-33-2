@@ -3,16 +3,11 @@ from datetime import datetime
 from secrets import (
     MY_LAT,
     MY_LONG,
+    TARGET_EMAIL_ACCOUNT,
 )
+from email import send_mail
 
 VICINITY_THRESHOLD = 0.05
-
-response = requests.get(url="http://api.open-notify.org/iss-now.json")
-response.raise_for_status()
-data = response.json()
-
-iss_latitude = float(data["iss_position"]["latitude"])
-iss_longitude = float(data["iss_position"]["longitude"])
 
 
 def are_coordinates_between_threshold(first_coordinate, second_coordinate):
@@ -41,14 +36,17 @@ def is_dark():
     return time_now.hour < sunrise or time_now.hour > sunset
 
 
-if is_my_position_nearby(iss_latitude, iss_longitude) and is_dark():
+if __name__ == '__main__':
+    response = requests.get(url="http://api.open-notify.org/iss-now.json")
+    response.raise_for_status()
+    data = response.json()
 
+    iss_latitude = float(data["iss_position"]["latitude"])
+    iss_longitude = float(data["iss_position"]["longitude"])
 
-
-    #If the ISS is close to my current position
-    # and it is currently dark
-    # Then send me an email to tell me to look up.
-    # BONUS: run the code every 60 seconds.
-
-
+    if is_my_position_nearby(iss_latitude, iss_longitude) and is_dark():
+        send_mail(
+            content="Look up!",
+            target_email_address=TARGET_EMAIL_ACCOUNT
+        )
 
