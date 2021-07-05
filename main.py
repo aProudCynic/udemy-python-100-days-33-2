@@ -5,7 +5,7 @@ from secrets import (
     MY_LONG,
     TARGET_EMAIL_ACCOUNT,
 )
-from email import send_mail
+from email_handling import send_mail
 
 VICINITY_THRESHOLD = 0.05
 
