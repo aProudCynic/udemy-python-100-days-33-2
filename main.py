@@ -36,14 +36,18 @@ def is_dark():
     return time_now.hour < sunrise or time_now.hour > sunset
 
 
-if __name__ == '__main__':
+def fetch_iss_position():
     response = requests.get(url="http://api.open-notify.org/iss-now.json")
     response.raise_for_status()
     data = response.json()
+    iss_position = data["iss_position"]
+    iss_latitude = float(iss_position["latitude"])
+    iss_longitude = float(iss_position["longitude"])
+    return iss_latitude, iss_longitude
 
-    iss_latitude = float(data["iss_position"]["latitude"])
-    iss_longitude = float(data["iss_position"]["longitude"])
 
+if __name__ == '__main__':
+    iss_latitude, iss_longitude = fetch_iss_position()
     if is_my_position_nearby(iss_latitude, iss_longitude) and is_dark():
         send_mail(
             content="Look up!",
